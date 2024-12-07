@@ -1,2 +1,6 @@
 /.idea/**
 
+/task manager.png
+/target/classes/org/yandex_practicum/**
+
+/target/test-classes/org/yandex_practicum/**
