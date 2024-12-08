@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.yandex_practicum.model.Epic;
 import org.yandex_practicum.model.Subtask;
 import org.yandex_practicum.model.Task;
+import org.yandex_practicum.util.TaskStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,24 +31,35 @@ public class Manager {
     }
 
     public boolean deleteAllTask() {
-        return false;
+        if (!subtasks.isEmpty()) {
+            subtasks.clear();
+        }
+        if (!tasks.isEmpty()) {
+            tasks.clear();
+        }
+        if (!epics.isEmpty()) {
+            epics.clear();
+        }
+        return true;
     }
 
     public Task getTaskById(int id) {
         return tasks.get(id);
     }
 
-    public Task getSubtaskById(int id) {
+    public Subtask getSubtaskById(int id) {
         return subtasks.get(id);
     }
 
-    public Task getEpicById(int id) {
+    public Epic getEpicById(int id) {
         return epics.get(id);
     }
 
-    public boolean createTask(Task task) {
+    public boolean createOrUpdateEpic(Task task) {
         if (task instanceof Subtask) {
             subtasks.put(task.getId(), (Subtask) task);
+            //добавить метод для обновления списка имён подзадач у соответствующего эпика
+            createOrUpdateEpic(checkAndUpgradeEpicStatus(getEpicIdByName(((Subtask) task).getEpicName())));
             return true;
         } else if (task instanceof Epic) {
             epics.put(task.getId(), (Epic) task);
@@ -59,19 +71,65 @@ public class Manager {
         return false;
     }
 
-    public boolean updateTask(Task task) {
-        return false;
+    private int getEpicIdByName(String epicName) {
+        int id = 0;
+        for (Map.Entry<Integer, Epic> entry : epics.entrySet()) {
+            if (entry.getValue().getName().equals(epicName)) id = entry.getValue().getId();
+        }
+        return id;
     }
 
     public boolean deleteById(int id) {
+        if (subtasks.containsKey(id)) {
+            createOrUpdateEpic(checkAndUpgradeEpicStatus(getEpicIdByName(getSubtaskById(id).getEpicName())));
+            subtasks.remove(id);
+            //после удаления подзадачи нужно обновить список имён подзадач у эпика
+            return true;
+        }
+        if (tasks.containsKey(id)) {
+            tasks.remove(id);
+            return true;
+        }
+        if (epics.containsKey(id)) {
+            Task epicById = getEpicById(id);
+            List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
+            epics.remove(id);
+            for (Subtask subtask : subtasksByEpicName) {
+                subtasks.remove(subtask.getId());
+            }
+            //если удаляем эпик, то и все подзадачи связанные с ним тоже стираются
+            return true;
+        }
         return false;
     }
 
     public List<Subtask> getSubtasksByEpicName(String name) {
-        return new ArrayList<>();
+        List<Subtask> subtaskList = new ArrayList<>();
+        for (Integer id : subtasks.keySet()) {
+            if (subtasks.get(id).getEpicName().equals(name)) {
+                subtaskList.add(subtasks.get(id));
+            }
+        }
+        return subtaskList;
     }
 
-    public boolean checkEpicStatus() {
-        return false;
+    public Epic checkAndUpgradeEpicStatus(int id) {
+        Epic epicById = getEpicById(id);
+        List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
+        //если хотя бы одна или все подзадачи в прогрессе или хотя бы одна подзадачана сделана - эпик в прогрессе,
+        // если все подзадачи сделаны - эпик сделан.
+        int progressStatusCount = 0;
+        int doneStatusCount = 0;
+
+        for (Subtask subtask : subtasksByEpicName) {
+            if (subtask.getStatus().equals(TaskStatus.IN_PROGRESS)) progressStatusCount++;
+            if (subtask.getStatus().equals(TaskStatus.DONE)) doneStatusCount++;
+        }
+        if (progressStatusCount > 0 && progressStatusCount == subtasksByEpicName.size() || doneStatusCount > 0
+                && doneStatusCount < subtasksByEpicName.size()) epicById.setStatus(TaskStatus.IN_PROGRESS);
+        else if (doneStatusCount > 0 && doneStatusCount == subtasksByEpicName.size())
+            epicById.setStatus(TaskStatus.DONE);
+
+        return epicById;
     }
 }
