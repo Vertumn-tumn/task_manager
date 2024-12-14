@@ -3,6 +3,7 @@ package org.yandex_practicum.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -11,9 +12,9 @@ import java.util.Objects;
 public class Epic extends Task {
     private List<String> subtaskNames;
 
-    public Epic(String name, String description, int id, Enum status, List<String> subtaskNames) {
+    public Epic(String name, String description, int id, Enum status) {
         super(name, description, id, status);
-        this.subtaskNames = subtaskNames;
+        this.subtaskNames = new ArrayList<>();
     }
 
     @Override
