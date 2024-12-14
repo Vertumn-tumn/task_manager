@@ -1,4 +1,4 @@
-package org.yandex_practicum;
+package org.yandex_practicum.manager;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,16 +14,24 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class Manager {
+public class InMemoryTaskManager implements TaskManager {
     private static int id = 0;
+
     private Map<Integer, Subtask> subtasks;
     private Map<Integer, Task> tasks;
     private Map<Integer, Epic> epics;
+    HistoryManager historyManager;
 
-    public Manager() {
+    public InMemoryTaskManager() {
         subtasks = new HashMap<>();
         tasks = new HashMap<>();
         epics = new HashMap<>();
+        historyManager = Managers.getDefaultHistory();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     public static int incrementAndGetId() {
@@ -43,23 +51,32 @@ public class Manager {
         return true;
     }
 
-    public Task getTaskById(int id) {
-        return tasks.get(id);
+    @Override
+    public Task getById(int id) {
+        if (tasks.containsKey(id)) {
+            Task task = tasks.get(id);
+            historyManager.add(task);
+            return task;
+        }
+        if (subtasks.containsKey(id)) {
+            Subtask subtask = subtasks.get(id);
+            historyManager.add(subtask);
+            return subtask;
+        }
+        if (epics.containsKey(id)) {
+            Epic epic = epics.get(id);
+            historyManager.add(epic);
+            return epic;
+        }
+        return null;
     }
 
-    public Subtask getSubtaskById(int id) {
-        return subtasks.get(id);
-    }
-
-    public Epic getEpicById(int id) {
-        return epics.get(id);
-    }
-
-    public boolean createOrUpdateEpic(Task task) {
+    @Override
+    public boolean createOrUpdateTask(Task task) {
         if (task instanceof Subtask) {
             subtasks.put(task.getId(), (Subtask) task);
             //добавить метод для обновления списка имён подзадач у соответствующего эпика
-            createOrUpdateEpic(checkAndUpgradeEpicStatus(getEpicIdByName(((Subtask) task).getEpicName())));
+            createOrUpdateTask(checkAndUpgradeEpicStatus(getEpicIdBySubtaskName(((Subtask) task).getEpicName())));
             return true;
         } else if (task instanceof Epic) {
             epics.put(task.getId(), (Epic) task);
@@ -71,18 +88,12 @@ public class Manager {
         return false;
     }
 
-    private int getEpicIdByName(String epicName) {
-        int id = 0;
-        for (Map.Entry<Integer, Epic> entry : epics.entrySet()) {
-            if (entry.getValue().getName().equals(epicName)) id = entry.getValue().getId();
-        }
-        return id;
-    }
-
+    @Override
     public boolean deleteById(int id) {
         if (subtasks.containsKey(id)) {
-            createOrUpdateEpic(checkAndUpgradeEpicStatus(getEpicIdByName(getSubtaskById(id).getEpicName())));
+            Subtask task = (Subtask) getById(id);
             subtasks.remove(id);
+            createOrUpdateTask(checkAndUpgradeEpicStatus(getEpicIdBySubtaskName(task.getEpicName())));
             //после удаления подзадачи нужно обновить список имён подзадач у эпика
             return true;
         }
@@ -91,17 +102,26 @@ public class Manager {
             return true;
         }
         if (epics.containsKey(id)) {
-            Task epicById = getEpicById(id);
+            //если удаляем эпик, то и все подзадачи связанные с ним тоже стираются
+            Task epicById = getById(id);
             List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
             epics.remove(id);
             for (Subtask subtask : subtasksByEpicName) {
                 subtasks.remove(subtask.getId());
             }
-            //если удаляем эпик, то и все подзадачи связанные с ним тоже стираются
             return true;
         }
         return false;
     }
+
+    private int getEpicIdBySubtaskName(String epicName) {
+        int id = 0;
+        for (Map.Entry<Integer, Epic> entry : epics.entrySet()) {
+            if (entry.getValue().getName().equals(epicName)) id = entry.getValue().getId();
+        }
+        return id;
+    }
+
 
     public List<Subtask> getSubtasksByEpicName(String name) {
         List<Subtask> subtaskList = new ArrayList<>();
@@ -114,7 +134,8 @@ public class Manager {
     }
 
     public Epic checkAndUpgradeEpicStatus(int id) {
-        Epic epicById = getEpicById(id);
+        Epic epicById = (Epic) getById(id);
+        List<String> names = new ArrayList<>();
         List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
         //если хотя бы одна или все подзадачи в прогрессе или хотя бы одна подзадачана сделана - эпик в прогрессе,
         // если все подзадачи сделаны - эпик сделан.
@@ -124,12 +145,24 @@ public class Manager {
         for (Subtask subtask : subtasksByEpicName) {
             if (subtask.getStatus().equals(TaskStatus.IN_PROGRESS)) progressStatusCount++;
             if (subtask.getStatus().equals(TaskStatus.DONE)) doneStatusCount++;
+            names.add(subtask.getName());
         }
-        if (progressStatusCount > 0 && progressStatusCount == subtasksByEpicName.size() || doneStatusCount > 0
-                && doneStatusCount < subtasksByEpicName.size()) epicById.setStatus(TaskStatus.IN_PROGRESS);
+        if (progressStatusCount > 0 && progressStatusCount == subtasksByEpicName.size()
+                || doneStatusCount > 0 && doneStatusCount < subtasksByEpicName.size())
+            epicById.setStatus(TaskStatus.IN_PROGRESS);
         else if (doneStatusCount > 0 && doneStatusCount == subtasksByEpicName.size())
             epicById.setStatus(TaskStatus.DONE);
 
+        epicById.setSubtaskNames(names);
         return epicById;
+    }
+
+    @Override
+    public void history() {
+        List<Task> history = historyManager.getHistory();
+        for (int i = 0; i < history.size(); i++) {
+            if (i < history.size() - 1) System.out.print(history.get(i).getId() + "-->");
+            else System.out.print(history.get(i).getId());
+        }
     }
 }
