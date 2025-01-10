@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class InMemoryTaskManager implements TaskManager {
+public class InMemoryTaskManager implements TaskManager<Task> {
     private static int id = 0;
 
     private Map<Integer, Subtask> subtasks;
@@ -91,24 +91,27 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean deleteById(int id) {
         if (subtasks.containsKey(id)) {
-            Subtask task = (Subtask) getById(id);
+            Subtask task = subtasks.get(id);
             subtasks.remove(id);
+            historyManager.removeNode(id);
             createOrUpdateTask(checkAndUpgradeEpicStatus(getEpicIdBySubtaskName(task.getEpicName())));
             //после удаления подзадачи нужно обновить список имён подзадач у эпика
             return true;
         }
         if (tasks.containsKey(id)) {
             tasks.remove(id);
+            historyManager.removeNode(id);
             return true;
         }
         if (epics.containsKey(id)) {
             //если удаляем эпик, то и все подзадачи связанные с ним тоже стираются
-            Task epicById = getById(id);
+            Task epicById = epics.get(id);
             List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
-            epics.remove(id);
             for (Subtask subtask : subtasksByEpicName) {
-                subtasks.remove(subtask.getId());
+                deleteById(subtask.getId());
             }
+            epics.remove(id);
+            historyManager.removeNode(id);
             return true;
         }
         return false;
@@ -134,7 +137,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public Epic checkAndUpgradeEpicStatus(int id) {
-        Epic epicById = (Epic) getById(id);
+        Epic epicById = epics.get(id);
         List<String> names = new ArrayList<>();
         List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
         //если хотя бы одна или все подзадачи в прогрессе или хотя бы одна подзадачана сделана - эпик в прогрессе,
@@ -147,10 +150,10 @@ public class InMemoryTaskManager implements TaskManager {
             if (subtask.getStatus().equals(TaskStatus.DONE)) doneStatusCount++;
             names.add(subtask.getName());
         }
-        if (progressStatusCount > 0 && progressStatusCount == subtasksByEpicName.size()
+        if (progressStatusCount > 0
                 || doneStatusCount > 0 && doneStatusCount < subtasksByEpicName.size())
             epicById.setStatus(TaskStatus.IN_PROGRESS);
-        else if (doneStatusCount > 0 && doneStatusCount == subtasksByEpicName.size())
+        else if (doneStatusCount == subtasksByEpicName.size())
             epicById.setStatus(TaskStatus.DONE);
 
         epicById.setSubtaskNames(names);

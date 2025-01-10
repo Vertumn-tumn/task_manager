@@ -13,7 +13,7 @@ import java.util.List;
 
 @Setter
 @Getter
-public class Util {
+public class DataTest {
     private String[] subtaskNames = {"open the door", "put on your shoes", "leave the field"};
 
 

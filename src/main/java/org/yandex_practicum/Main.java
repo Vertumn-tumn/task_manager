@@ -38,6 +38,14 @@ public class Main {
         id = InMemoryTaskManager.incrementAndGetId();
         subtask3.setId(id);
         manager.createOrUpdateTask(subtask3);
+        subtask1.setStatus(TaskStatus.IN_PROGRESS);
+        manager.createOrUpdateTask(subtask1);
+        subtask1.setStatus(TaskStatus.DONE);
+        manager.createOrUpdateTask(subtask1);
+        subtask2.setStatus(TaskStatus.DONE);
+        manager.createOrUpdateTask(subtask2);
+        subtask3.setStatus(TaskStatus.DONE);
+        manager.createOrUpdateTask(subtask3);
         manager.getById(3);
         manager.getById(5);
         manager.getById(4);
@@ -54,7 +62,10 @@ public class Main {
         manager.deleteById(3);
         manager.history();
         System.out.println("\r\n");
-        Epic byId = (Epic) manager.getById(2);
-        System.out.println(byId.getSubtaskNames());
+        manager.deleteById(2);
+        manager.history();
+        System.out.println("\r\n");
+        manager.deleteById(1);
+        manager.history();
     }
 }
