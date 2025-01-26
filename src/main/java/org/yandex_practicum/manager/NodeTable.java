@@ -16,9 +16,11 @@ public class NodeTable {
     }
 
     public void updateTable(List<Task> historyList) {
-        lastSpaceOfTaskMap = new HashMap<>(historyList.size());
-        for (int i = 0; i < historyList.size(); i++) {
-            lastSpaceOfTaskMap.put(historyList.get(i).getId(), i);
+        if (historyList.size() != 0) {
+            lastSpaceOfTaskMap = new HashMap<>(historyList.size());
+            for (int i = 0; i < historyList.size(); i++) {
+                lastSpaceOfTaskMap.put(historyList.get(i).getId(), i);
+            }
         }
     }
 }

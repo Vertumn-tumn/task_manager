@@ -55,6 +55,12 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
+    public void removeAllNode() {
+        if (!historyList.isEmpty()) historyList.clear();
+        if (!nodeTable.getLastSpaceOfTaskMap().isEmpty()) nodeTable.updateTable(historyList);
+    }
+
+    @Override
     public List<Task> getHistory() {
         return historyList.getTasks();
     }

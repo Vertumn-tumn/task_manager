@@ -65,7 +65,7 @@ public class Main {
         manager.deleteById(2);
         manager.history();
         System.out.println("\r\n");
-        manager.deleteById(1);
+        manager.deleteAllTask();
         manager.history();
     }
 }

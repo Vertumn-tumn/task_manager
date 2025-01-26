@@ -48,6 +48,7 @@ public class InMemoryTaskManager implements TaskManager<Task> {
         if (!epics.isEmpty()) {
             epics.clear();
         }
+        historyManager.removeAllNode();
         return true;
     }
 

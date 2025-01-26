@@ -9,5 +9,7 @@ public interface HistoryManager {
 
     void removeNode(int id);
 
+    void removeAllNode();
+
     List<Task> getHistory();
 }
