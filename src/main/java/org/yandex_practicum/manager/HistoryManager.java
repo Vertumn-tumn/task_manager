@@ -11,5 +11,5 @@ public interface HistoryManager {
 
     void removeAllNode();
 
-    List<Task> getHistory();
+    List<Integer> getHistory();
 }

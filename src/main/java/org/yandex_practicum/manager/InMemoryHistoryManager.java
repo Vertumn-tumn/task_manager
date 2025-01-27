@@ -21,17 +21,17 @@ public class InMemoryHistoryManager implements HistoryManager {
         maxHistorySize = 10;
     }
 
-    class NonDuplicateLinkedList extends LinkedList<Task> {
+    class NonDuplicateLinkedList extends LinkedList<Integer> {
         public void linkLast(Task task) {
             if (nodeTable.getLastSpaceOfTaskMap().containsKey(task.getId())) {
                 int last = nodeTable.getLastSpaceOfTaskMap().get(task.getId());
                 historyList.remove(last);
             }
-            addLast(task);
+            addLast(task.getId());
             nodeTable.updateTable(historyList);
         }
 
-        public ArrayList<Task> getTasks() {
+        public ArrayList<Integer> getTasks() {
             return new ArrayList<>(historyList);
         }
     }
@@ -61,7 +61,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public List<Task> getHistory() {
+    public List<Integer> getHistory() {
         return historyList.getTasks();
     }
 }

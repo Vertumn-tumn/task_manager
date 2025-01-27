@@ -1,7 +1,6 @@
 package org.yandex_practicum.manager;
 
 import lombok.Getter;
-import org.yandex_practicum.model.Task;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,11 +14,11 @@ public class NodeTable {
         this.lastSpaceOfTaskMap = new HashMap<>();
     }
 
-    public void updateTable(List<Task> historyList) {
+    public void updateTable(List<Integer> historyList) {
         if (historyList.size() != 0) {
             lastSpaceOfTaskMap = new HashMap<>(historyList.size());
             for (int i = 0; i < historyList.size(); i++) {
-                lastSpaceOfTaskMap.put(historyList.get(i).getId(), i);
+                lastSpaceOfTaskMap.put(historyList.get(i), i);
             }
         }
     }

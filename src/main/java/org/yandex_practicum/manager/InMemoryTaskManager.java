@@ -163,10 +163,10 @@ public class InMemoryTaskManager implements TaskManager<Task> {
 
     @Override
     public void history() {
-        List<Task> history = historyManager.getHistory();
+        List<Integer> history = historyManager.getHistory();
         for (int i = 0; i < history.size(); i++) {
-            if (i < history.size() - 1) System.out.print(history.get(i).getId() + "-->");
-            else System.out.print(history.get(i).getId());
+            if (i < history.size() - 1) System.out.print(history.get(i) + "-->");
+            else System.out.print(history.get(i));
         }
     }
 }
