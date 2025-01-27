@@ -3,6 +3,7 @@ package org.yandex_practicum.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.yandex_practicum.util.TypeOfTask;
 
 import java.util.Objects;
 
@@ -31,5 +32,10 @@ public class Task {
         Task task = (Task) obj;
         return name.equals(task.getName()) && description.equals(task.getDescription())
                 && id == task.getId() && status.equals(task.getStatus());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s,%s,%s,%s,%s,",getId(), TypeOfTask.TASK,getName(),getStatus(),getDescription());
     }
 }

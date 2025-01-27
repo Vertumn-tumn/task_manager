@@ -118,7 +118,7 @@ public class InMemoryTaskManager implements TaskManager<Task> {
         return false;
     }
 
-    private int getEpicIdBySubtaskName(String epicName) {
+    int getEpicIdBySubtaskName(String epicName) {
         int id = 0;
         for (Map.Entry<Integer, Epic> entry : epics.entrySet()) {
             if (entry.getValue().getName().equals(epicName)) id = entry.getValue().getId();

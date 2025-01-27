@@ -2,6 +2,7 @@ package org.yandex_practicum.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.yandex_practicum.util.TypeOfTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,5 +36,10 @@ public class Epic extends Task {
         }
         Epic task = (Epic) obj;
         return subtaskNames.equals(task.getSubtaskNames());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s,%s,%s,%s,%s,",getId(),TypeOfTask.EPIC,getName(),getStatus(),getDescription());
     }
 }
