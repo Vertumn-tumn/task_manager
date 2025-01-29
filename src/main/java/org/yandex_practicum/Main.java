@@ -1,5 +1,6 @@
 package org.yandex_practicum;
 
+import org.yandex_practicum.manager.FileBackedTasksManager;
 import org.yandex_practicum.manager.InMemoryTaskManager;
 import org.yandex_practicum.manager.Managers;
 import org.yandex_practicum.manager.TaskManager;
@@ -9,9 +10,12 @@ import org.yandex_practicum.model.Task;
 import org.yandex_practicum.util.Data;
 import org.yandex_practicum.util.TaskStatus;
 
+import java.nio.file.Path;
+
 public class Main {
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
+        manager= FileBackedTasksManager.loadFromFile(Path.of("C:/Users/admin/Documents/FileForManager"));
         Data data = new Data();
         int id = InMemoryTaskManager.incrementAndGetId();
         manager.createOrUpdateTask(new Task("Сделать раз", "И раз"
@@ -56,16 +60,17 @@ public class Main {
         manager.history();
         System.out.println("\r\n");
         manager.getById(2);
+        manager= FileBackedTasksManager.loadFromFile(Path.of("C:/Users/admin/Documents/FileForManager"));
         manager.getById(1);
         manager.history();
         System.out.println("\r\n");
-        manager.deleteById(3);
+        /*manager.deleteById(3);
         manager.history();
         System.out.println("\r\n");
         manager.deleteById(2);
         manager.history();
         System.out.println("\r\n");
         manager.deleteAllTask();
-        manager.history();
+        manager.history();*/
     }
 }

@@ -12,4 +12,6 @@ public interface HistoryManager {
     void removeAllNode();
 
     List<Integer> getHistory();
+
+    void setHistory(List<String> list);
 }

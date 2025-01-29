@@ -36,6 +36,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s,",getId(), TypeOfTask.TASK,getName(),getStatus(),getDescription());
+        return String.format("%s,%s,%s,%s,%s,", getId(), TypeOfTask.TASK, getName(), getStatus(), getDescription());
     }
 }

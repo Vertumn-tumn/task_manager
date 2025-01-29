@@ -22,6 +22,14 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     class NonDuplicateLinkedList extends LinkedList<Integer> {
+        public NonDuplicateLinkedList(List list) {
+            super(list);
+        }
+
+        public NonDuplicateLinkedList() {
+
+        }
+
         public void linkLast(Task task) {
             if (nodeTable.getLastSpaceOfTaskMap().containsKey(task.getId())) {
                 int last = nodeTable.getLastSpaceOfTaskMap().get(task.getId());
@@ -63,5 +71,15 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public List<Integer> getHistory() {
         return historyList.getTasks();
+    }
+
+    @Override
+    public void setHistory(List<String> list) {
+        List<Integer> integers = list.stream()
+                .mapToInt(Integer::parseInt)
+                .boxed()
+                .toList();
+        historyList = new NonDuplicateLinkedList(integers);
+        nodeTable.updateTable(historyList);
     }
 }
