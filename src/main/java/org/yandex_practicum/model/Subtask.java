@@ -2,6 +2,7 @@ package org.yandex_practicum.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.yandex_practicum.util.TaskStatus;
 import org.yandex_practicum.util.TypeOfTask;
 
 import java.util.Objects;
@@ -11,7 +12,7 @@ import java.util.Objects;
 public class Subtask extends Task {
     private String epicName;
 
-    public Subtask(String name, String description, int id, Enum status, String epicName) {
+    public Subtask(String name, String description, int id, TaskStatus status, String epicName) {
         super(name, description, id, status);
         this.epicName = epicName;
     }

@@ -7,16 +7,15 @@ import org.yandex_practicum.model.Subtask;
 import org.yandex_practicum.model.Task;
 import org.yandex_practicum.util.TaskStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
 public class InMemoryTaskManager implements TaskManager<Task> {
     private static int id = 0;
-
     private Map<Integer, Subtask> subtasks;
     private Map<Integer, Task> tasks;
     private Map<Integer, Epic> epics;
@@ -141,6 +140,8 @@ public class InMemoryTaskManager implements TaskManager<Task> {
         Epic epicById = epics.get(id);
         List<String> names = new ArrayList<>();
         List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
+        subtasksByEpicName.sort(Comparator.nullsLast(Comparator.comparing(Task::getStartTime)));
+
         //если хотя бы одна или все подзадачи в прогрессе или хотя бы одна подзадачана сделана - эпик в прогрессе,
         // если все подзадачи сделаны - эпик сделан.
         int progressStatusCount = 0;
@@ -158,7 +159,23 @@ public class InMemoryTaskManager implements TaskManager<Task> {
             epicById.setStatus(TaskStatus.DONE);
 
         epicById.setSubtaskNames(names);
+        setWorkingPeriod(epicById, subtasksByEpicName);
         return epicById;
+    }
+
+    private void setWorkingPeriod(Epic epicById, List<Subtask> subtasksByEpicName) {
+        if (!subtasksByEpicName.isEmpty()) {
+            Duration total = epicById.getDuration();
+            if (subtasksByEpicName.get(0).getStartTime() != null) {
+                ZonedDateTime startTime = subtasksByEpicName.get(0).getStartTime();
+                epicById.setStartTime(startTime);
+            }
+            total = (total == null) ?
+                    Duration.ZERO.plus(subtasksByEpicName.get(subtasksByEpicName.size() - 1).getDuration())
+                    : total.plus(subtasksByEpicName.get(subtasksByEpicName.size() - 1).getDuration());
+            epicById.setDuration(total);
+            if (epicById.getStartTime() != null) epicById.setEndTime(epicById.getStartTime().plus(total));
+        }
     }
 
     @Override
@@ -168,5 +185,28 @@ public class InMemoryTaskManager implements TaskManager<Task> {
             if (i < history.size() - 1) System.out.print(history.get(i) + "-->");
             else System.out.print(history.get(i));
         }
+    }
+
+    @Override
+    public Map<Integer, Task> getPrioritizedTasks() {
+        Map<Integer, Task> prioritizedMap = new HashMap<>();
+        if (!tasks.isEmpty()) {
+            prioritizedMap.putAll(tasks);
+        }
+        if (!epics.isEmpty()) {
+            prioritizedMap.putAll(epics);
+        }
+        if (!subtasks.isEmpty()) {
+            prioritizedMap.putAll(subtasks);
+        }
+
+        return prioritizedMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.nullsLast(
+                        Comparator.comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
+                ))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
     }
 }

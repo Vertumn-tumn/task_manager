@@ -15,7 +15,7 @@ import java.nio.file.Path;
 public class Main {
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
-        manager= FileBackedTasksManager.loadFromFile(Path.of("C:/Users/admin/Documents/FileForManager"));
+//        manager= FileBackedTasksManager.loadFromFile(Path.of("C:/Users/admin/Documents/FileForManager"));
         Data data = new Data();
         int id = InMemoryTaskManager.incrementAndGetId();
         manager.createOrUpdateTask(new Task("Сделать раз", "И раз"
