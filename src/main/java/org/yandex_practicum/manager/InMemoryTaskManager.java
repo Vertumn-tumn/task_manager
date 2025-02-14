@@ -140,7 +140,7 @@ public class InMemoryTaskManager implements TaskManager<Task> {
         Epic epicById = epics.get(id);
         List<String> names = new ArrayList<>();
         List<Subtask> subtasksByEpicName = getSubtasksByEpicName(epicById.getName());
-        subtasksByEpicName.sort(Comparator.nullsLast(Comparator.comparing(Task::getStartTime)));
+//        subtasksByEpicName.sort(Comparator.nullsLast(Comparator.comparing(Task::getStartTime).thenComparing(Task::getId)));
 
         //если хотя бы одна или все подзадачи в прогрессе или хотя бы одна подзадачана сделана - эпик в прогрессе,
         // если все подзадачи сделаны - эпик сделан.
@@ -170,21 +170,25 @@ public class InMemoryTaskManager implements TaskManager<Task> {
                 ZonedDateTime startTime = subtasksByEpicName.get(0).getStartTime();
                 epicById.setStartTime(startTime);
             }
-            total = (total == null) ?
-                    Duration.ZERO.plus(subtasksByEpicName.get(subtasksByEpicName.size() - 1).getDuration())
-                    : total.plus(subtasksByEpicName.get(subtasksByEpicName.size() - 1).getDuration());
+            Duration lastDuration = subtasksByEpicName.get(subtasksByEpicName.size() - 1).getDuration();
+            if (total == null && lastDuration != null) total = Duration.ZERO.plus(lastDuration);
+            else if(total == null && lastDuration == null) total=Duration.ZERO;
+            else if(total != null && lastDuration == null) {
+            }
+            else total = total.plus(lastDuration);
             epicById.setDuration(total);
             if (epicById.getStartTime() != null) epicById.setEndTime(epicById.getStartTime().plus(total));
         }
     }
 
     @Override
-    public void history() {
+    public List<Integer> history() {
         List<Integer> history = historyManager.getHistory();
         for (int i = 0; i < history.size(); i++) {
             if (i < history.size() - 1) System.out.print(history.get(i) + "-->");
             else System.out.print(history.get(i));
         }
+        return history;
     }
 
     @Override

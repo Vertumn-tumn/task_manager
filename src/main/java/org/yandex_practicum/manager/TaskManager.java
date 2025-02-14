@@ -2,6 +2,7 @@ package org.yandex_practicum.manager;
 
 import org.yandex_practicum.model.Task;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -14,7 +15,7 @@ public interface TaskManager<T extends Task> {
 
     boolean deleteById(int id);
 
-    void history();
+    List<Integer> history();
 
     Map<Integer,T> getPrioritizedTasks();
 }
